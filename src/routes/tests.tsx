@@ -1,62 +1,100 @@
-import { GoARadioGroup, GoARadioItem } from "@abgov/react-components";
+import {
+  GoAButton,
+  GoAInput,
+  GoARadioGroup,
+  GoARadioItem,
+} from "@abgov/react-components";
 import { useState } from "react";
 
-interface Item {
-  value: string;
+interface Task {
+  id: string;
+  desc: string;
+  status: string;
 }
 
-const words =
-  "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis.".split(
-    " "
-  );
-
-function getWord(): string {
-  const index = Math.floor(Math.random() * words.length);
-  return words[index];
+function createTask(desc: string): Task {
+  return {
+    id: `${Date.now()}`,
+    desc,
+    status: "incomplete",
+  };
 }
 
 export const TestsRoute = () => {
-  const [items, setItems] = useState<Item[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [details, setDetails] = useState<string>("");
 
-  function addItem() {
-    const value = getWord();
-    setItems([...items, { value }]);
-    // setItems((old) => [...old, { value }]);
+  function addTask(desc: string) {
+    const task = createTask(desc);
+
+    setTasks((old) => [...old, task]);
+    setDetails("");
   }
 
-  function updateValue(item: Item, index: number, newValue: string) {
-    const _item = items[index];
-    const newItems = [
-      ...items.slice(0, index),
-      _item,
-      ...items.slice(index + 1, items.length - 1),
-    ];
-    setItems(newItems);
+  const TaskState = ({ tasks }: { tasks: Task[] }) => {
+    const completeCount = tasks.filter((t) => t.status === "done").length;
+    const incompleteCount = tasks.length - completeCount;
+    return (
+      <div>
+        <em style={{ fontSize: "1rem", textDecoration: "none" }}>
+          Incomplete: {incompleteCount} Completed: {completeCount}
+        </em>
+      </div>
+    );
+  };
+
+  function updateValue(task: Task, newStatus: string) {
+    setTasks((old) => {
+      const updated = old.find((t) => t.id === task.id);
+      if (updated) {
+        updated.status = newStatus;
+      }
+      return [...old];
+    });
   }
 
   return (
     <>
-      <h1>Multi Select Test</h1>
-      <button onClick={() => addItem()}>Add Item</button>
-      {items.map((item: Item, index: number) => (
-        <div key={item.value}>
-          <div>{item.value}</div>
+      <h1>Todos</h1>
+      <div style={{ display: "flex", gap: "1rem" }}>
+        <GoAInput
+          name="details"
+          type="text"
+          value={details}
+          onChange={(_name, value) => setDetails(value)}
+        />
+        <GoAButton onClick={() => addTask(details)}>New Task</GoAButton>
+      </div>
+
+      <hr />
+
+      <TaskState tasks={tasks} />
+
+      {tasks.map((task: Task) => (
+        <div
+          key={task.id}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div>{task.desc}</div>
           <GoARadioGroup
-            name={item.value}
-            value={item.value}
-            onChange={(_: string, value: string) =>
-              updateValue(item, index, value)
-            }
+            orientation="horizontal"
+            name={task.id}
+            value={task.status}
+            onChange={(_: string, value: string) => updateValue(task, value)}
           >
-            <GoARadioItem name={item.value} label="Ascending" value="true" />
-            <GoARadioItem name={item.value} label="Descending" value="false" />
+            <GoARadioItem name={task.id} label="Done" value="done" />
+            <GoARadioItem
+              name={task.id}
+              label="Incomplete"
+              value="incomplete"
+            />
           </GoARadioGroup>
         </div>
       ))}
     </>
   );
-};
-
-const ItemView = (props: Item) => {
-  return <>{props.value}</>;
 };
