@@ -44,13 +44,20 @@ export const TestsRoute = () => {
   };
 
   function updateValue(task: Task, newStatus: string) {
-    setTasks((old) => {
-      const updated = old.find((t) => t.id === task.id);
-      if (updated) {
-        updated.status = newStatus;
-      }
-      return [...old];
-    });
+    // This way works
+    // setTasks((old) => {
+    //   const updated = old.find((t) => t.id === task.id);
+    //   if (updated) {
+    //     updated.status = newStatus;
+    //   }
+    //   return [...old];
+    // });
+
+    // This way works too
+    const updated = [...tasks];
+    const index = tasks.findIndex((t) => t.id === task.id);
+    updated.splice(index, 1, { ...updated[index], status: newStatus });
+    setTasks(updated);
   }
 
   return (
